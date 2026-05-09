@@ -69,7 +69,6 @@ def payment_text(deposit):
 def clear_form():
     keys = [
         "client_name",
-        "client_email",
         "quote_address",
         "job_title",
         "scope_text",
@@ -346,7 +345,6 @@ if not st.session_state.show_preview:
     st.subheader("Quote Form")
 
     st.text_input("Client Name *", key="client_name")
-    st.text_input("Client Email", key="client_email")
     st.text_input("Quote Address *", key="quote_address")
     st.text_input("Job Title *", key="job_title")
 
@@ -442,7 +440,6 @@ if not st.session_state.show_preview:
 
         quote_data = {
             "client_name": st.session_state.client_name,
-            "client_email": st.session_state.client_email,
             "quote_address": st.session_state.quote_address,
             "job_title": st.session_state.job_title,
             "scope_text": st.session_state.scope_text,
@@ -557,7 +554,7 @@ else:
 
     st.subheader("Email Quote")
 
-    default_to = quote_data.get("client_email", "")
+    default_to = ""
 
     default_cc = "lionelcastropalomino@gmail.com"
 
