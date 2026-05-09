@@ -13,20 +13,12 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 from reportlab.lib import colors
 
-# =====================================================
-# SETTINGS
-# =====================================================
-
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzu-1OxZDVDIt8atdm2Dmy4ujr4yrBXG92f5u8nkdzDI_86JkivJttTMKXXKtFA5SfD/exec"
 
 st.set_page_config(
     page_title="Aaron's Demolition Quote Generator",
     layout="wide"
 )
-
-# =====================================================
-# SESSION STATE
-# =====================================================
 
 if "show_preview" not in st.session_state:
     st.session_state.show_preview = False
@@ -46,12 +38,10 @@ if "drive_link" not in st.session_state:
 if "drive_file_id" not in st.session_state:
     st.session_state.drive_file_id = ""
 
-# =====================================================
-# HELPERS
-# =====================================================
 
 def clean_lines(text):
     return [line.strip() for line in str(text).split("\n") if line.strip()]
+
 
 def clean_filename(text):
     text = str(text).strip()
@@ -59,8 +49,8 @@ def clean_filename(text):
     text = re.sub(r"\s+", " ", text)
     return text
 
-def payment_text(deposit):
 
+def payment_text(deposit):
     if deposit == "100%":
         return "Full payment upfront is required prior to commencement of works."
 
@@ -75,8 +65,8 @@ def payment_text(deposit):
         f"The remaining balance is to be paid upon completion of works unless negotiated otherwise."
     )
 
-def clear_form():
 
+def clear_form():
     keys = [
         "client_name",
         "client_email",
@@ -92,23 +82,23 @@ def clear_form():
         "scope3",
         "price3",
         "scope4",
-        "price4"
+        "price4",
+        "pdf_buffer",
+        "quote_data",
+        "drive_saved",
+        "drive_link",
+        "drive_file_id"
     ]
 
     for key in keys:
-        st.session_state[key] = ""
+        if key in st.session_state:
+            del st.session_state[key]
 
     st.session_state.show_preview = False
-    st.session_state.pdf_buffer = None
-    st.session_state.quote_data = {}
-    st.session_state.drive_saved = False
-    st.session_state.drive_link = ""
-    st.session_state.drive_file_id = ""
+
 
 def add_footer(canvas, doc):
-
     canvas.saveState()
-
     canvas.setFont("Helvetica", 8)
 
     canvas.drawCentredString(
@@ -131,12 +121,8 @@ def add_footer(canvas, doc):
 
     canvas.restoreState()
 
-# =====================================================
-# PDF GENERATOR
-# =====================================================
 
 def generate_pdf(data):
-
     buffer = io.BytesIO()
 
     doc = SimpleDocTemplate(
@@ -182,12 +168,7 @@ def generate_pdf(data):
 
     elements = []
 
-    logo = Image(
-        "aarons_logo.png",
-        width=300,
-        height=120
-    )
-
+    logo = Image("aarons_logo.png", width=300, height=120)
     logo.hAlign = "CENTER"
 
     elements.append(logo)
@@ -204,31 +185,17 @@ def generate_pdf(data):
 
     intro = f"""
     Thank you, {data['client_name']}, for the opportunity to quote the following work. I have relied upon discussions and the information provided regarding the scope of works.
-
     <br/><br/>
-
     Aaron's Demolitions ensures all work will be performed within OH&S requirements and compliant with our Environment Health & Safety Management Plan. Safe Work Method Statements will be supplied upon commencement of work if required.
-
     <br/><br/>
-
     Aaron's Demolitions has Public Liability Insurance at $20,000,000.00, current Work Cover, operating within the Building & Construction General On-Site Award 2010, and is compliant with the National Code & Guidelines.
-
     <br/><br/>
-
     Please note that the term “Dismantling” is used instead of “Demolition” in order to emphasize our principles of recycling and the minimization of materials to landfills. In order to achieve this, all salvage becomes the property of Aaron's Demolitions.
-
     <br/><br/>
-
     Attention
     """
 
-    elements.append(
-        Paragraph(
-            intro,
-            normal
-        )
-    )
-
+    elements.append(Paragraph(intro, normal))
     elements.append(PageBreak())
 
     elements.append(
@@ -247,71 +214,35 @@ def generate_pdf(data):
 
     elements.append(Spacer(1, 12))
 
-    elements.append(
-        Paragraph(
-            "Inclusions & Scope of Works",
-            heading
-        )
-    )
+    elements.append(Paragraph("Inclusions & Scope of Works", heading))
 
     for i, item in enumerate(clean_lines(data["scope_text"]), start=1):
-
-        elements.append(
-            Paragraph(
-                f"{i}. {item}",
-                normal
-            )
-        )
+        elements.append(Paragraph(f"{i}. {item}", normal))
 
     elements.append(Spacer(1, 12))
 
-    elements.append(
-        Paragraph(
-            "Exclusions",
-            heading
-        )
-    )
+    elements.append(Paragraph("Exclusions", heading))
 
     for i, item in enumerate(clean_lines(data["exclusions_text"]), start=1):
-
-        elements.append(
-            Paragraph(
-                f"{i}. {item}",
-                normal
-            )
-        )
+        elements.append(Paragraph(f"{i}. {item}", normal))
 
     elements.append(Spacer(1, 12))
 
     if data["documentation_text"].strip():
-
-        elements.append(
-            Paragraph(
-                "Documentation",
-                heading
-            )
-        )
+        elements.append(Paragraph("Documentation", heading))
 
         for i, item in enumerate(clean_lines(data["documentation_text"]), start=1):
-
-            elements.append(
-                Paragraph(
-                    f"{i}. {item}",
-                    normal
-                )
-            )
+            elements.append(Paragraph(f"{i}. {item}", normal))
 
     elements.append(Spacer(1, 18))
 
     pricing_rows = []
 
     for i in range(1, 5):
-
         desc = data.get(f"scope{i}", "").strip()
         price = data.get(f"price{i}", "").strip()
 
         if desc:
-
             pricing_rows.append([
                 f"Scope {i}",
                 Paragraph(desc, table_text),
@@ -320,16 +251,9 @@ def generate_pdf(data):
 
     pricing_block = []
 
-    pricing_block.append(
-        Paragraph(
-            "Scope-Based Pricing",
-            heading
-        )
-    )
+    pricing_block.append(Paragraph("Scope-Based Pricing", heading))
 
-    table_data = [
-        ["Scope", "Description", "Price"]
-    ] + pricing_rows
+    table_data = [["Scope", "Description", "Price"]] + pricing_rows
 
     pricing_table = Table(
         table_data,
@@ -338,29 +262,17 @@ def generate_pdf(data):
     )
 
     pricing_table.setStyle(TableStyle([
-
-        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
-
-        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-
-        ("FONTSIZE", (0,0), (-1,-1), 9),
-
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-
-        ("VALIGN", (0,0), (-1,-1), "TOP"),
-
-        ("ALIGN", (0,0), (0,-1), "CENTER"),
-
-        ("ALIGN", (2,1), (2,-1), "CENTER"),
-
-        ("LEFTPADDING", (0,0), (-1,-1), 6),
-
-        ("RIGHTPADDING", (0,0), (-1,-1), 6),
-
-        ("TOPPADDING", (0,0), (-1,-1), 8),
-
-        ("BOTTOMPADDING", (0,0), (-1,-1), 8),
-
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("ALIGN", (2, 1), (2, -1), "CENTER"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
 
     pricing_block.append(pricing_table)
@@ -370,20 +282,8 @@ def generate_pdf(data):
         f"This quotation is valid for {data['quote_validity']} from the date issued."
     )
 
-    pricing_block.append(
-        Paragraph(
-            validity_text,
-            normal
-        )
-    )
-
-    pricing_block.append(
-        Paragraph(
-            payment_text(data["deposit_required"]),
-            normal
-        )
-    )
-
+    pricing_block.append(Paragraph(validity_text, normal))
+    pricing_block.append(Paragraph(payment_text(data["deposit_required"]), normal))
     pricing_block.append(Spacer(1, 10))
 
     bank_details = """
@@ -393,16 +293,9 @@ def generate_pdf(data):
     Account Number: 246767
     """
 
-    pricing_block.append(
-        Paragraph(
-            bank_details,
-            normal
-        )
-    )
+    pricing_block.append(Paragraph(bank_details, normal))
 
-    elements.append(
-        KeepTogether(pricing_block)
-    )
+    elements.append(KeepTogether(pricing_block))
 
     doc.build(
         elements,
@@ -411,35 +304,19 @@ def generate_pdf(data):
     )
 
     buffer.seek(0)
-
     return buffer
 
-# =====================================================
-# SAVE TO GOOGLE SHEET + DRIVE
-# =====================================================
 
-def save_quote_to_drive_and_sheet(
-    quote_data,
-    pdf_buffer
-):
-
+def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
     pdf_bytes = pdf_buffer.getvalue()
 
-    pdf_base64 = base64.b64encode(
-        pdf_bytes
-    ).decode("utf-8")
+    pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
 
-    timestamp = datetime.now().strftime(
-        "%Y-%m-%d_%H-%M"
-    )
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
 
-    safe_address = clean_filename(
-        quote_data["quote_address"]
-    )
+    safe_address = clean_filename(quote_data["quote_address"])
 
-    file_name = (
-        f"Quote - {safe_address} - {timestamp}.pdf"
-    )
+    file_name = f"Quote - {safe_address} - {timestamp}.pdf"
 
     payload = {
         **quote_data,
@@ -456,13 +333,10 @@ def save_quote_to_drive_and_sheet(
 
     return response
 
-# =====================================================
-# FORM PAGE
-# =====================================================
 
 if not st.session_state.show_preview:
 
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
         st.image("aarons_logo.png", width=380)
@@ -471,25 +345,10 @@ if not st.session_state.show_preview:
 
     st.subheader("Quote Form")
 
-    st.text_input(
-        "Client Name *",
-        key="client_name"
-    )
-
-    st.text_input(
-        "Client Email",
-        key="client_email"
-    )
-
-    st.text_input(
-        "Quote Address *",
-        key="quote_address"
-    )
-
-    st.text_input(
-        "Job Title *",
-        key="job_title"
-    )
+    st.text_input("Client Name *", key="client_name")
+    st.text_input("Client Email", key="client_email")
+    st.text_input("Quote Address *", key="quote_address")
+    st.text_input("Job Title *", key="job_title")
 
     st.text_area(
         "Inclusions & Scope of Works *",
@@ -511,45 +370,17 @@ if not st.session_state.show_preview:
 
     st.subheader("Scope-Based Pricing")
 
-    st.text_input(
-        "Scope 1 Description *",
-        key="scope1"
-    )
+    st.text_input("Scope 1 Description *", key="scope1")
+    st.text_input("Scope 1 Price *", key="price1")
 
-    st.text_input(
-        "Scope 1 Price *",
-        key="price1"
-    )
+    st.text_input("Scope 2 Description", key="scope2")
+    st.text_input("Scope 2 Price", key="price2")
 
-    st.text_input(
-        "Scope 2 Description",
-        key="scope2"
-    )
+    st.text_input("Scope 3 Description", key="scope3")
+    st.text_input("Scope 3 Price", key="price3")
 
-    st.text_input(
-        "Scope 2 Price",
-        key="price2"
-    )
-
-    st.text_input(
-        "Scope 3 Description",
-        key="scope3"
-    )
-
-    st.text_input(
-        "Scope 3 Price",
-        key="price3"
-    )
-
-    st.text_input(
-        "Scope 4 Description",
-        key="scope4"
-    )
-
-    st.text_input(
-        "Scope 4 Price",
-        key="price4"
-    )
+    st.text_input("Scope 4 Description", key="scope4")
+    st.text_input("Scope 4 Price", key="price4")
 
     st.selectbox(
         "Quote Validity",
@@ -582,22 +413,16 @@ if not st.session_state.show_preview:
         key="deposit_required"
     )
 
-    col_a, col_b = st.columns([1,1])
+    col_a, col_b = st.columns([1, 1])
 
     with col_a:
-
-        generate_button = st.button(
-            "Generate Formal PDF Preview"
-        )
+        generate_button = st.button("Generate Formal PDF Preview")
 
     with col_b:
-
-        if st.button(
-            "New Quote / Clear Form"
-        ):
-
-            clear_form()
-            st.rerun()
+        st.button(
+            "New Quote / Clear Form",
+            on_click=clear_form
+        )
 
     if generate_button:
 
@@ -612,11 +437,7 @@ if not st.session_state.show_preview:
         ]
 
         if any(not field for field in required_fields):
-
-            st.error(
-                "Please complete all required fields marked with *"
-            )
-
+            st.error("Please complete all required fields marked with *")
             st.stop()
 
         quote_data = {
@@ -639,54 +460,36 @@ if not st.session_state.show_preview:
             "deposit_required": st.session_state.deposit_required,
         }
 
-        pdf_buffer = generate_pdf(
-            quote_data
-        )
+        pdf_buffer = generate_pdf(quote_data)
 
         try:
-
             response = save_quote_to_drive_and_sheet(
                 quote_data,
                 pdf_buffer
             )
 
             if response.status_code == 200:
-
                 result = response.json()
 
                 st.session_state.drive_saved = True
-
-                st.session_state.drive_link = result.get(
-                    "file_url",
-                    ""
-                )
-
-                st.session_state.drive_file_id = result.get(
-                    "file_id",
-                    ""
-                )
+                st.session_state.drive_link = result.get("file_url", "")
+                st.session_state.drive_file_id = result.get("file_id", "")
 
             else:
-
                 st.session_state.drive_saved = False
                 st.session_state.drive_link = ""
+                st.session_state.drive_file_id = ""
 
         except Exception:
-
             st.session_state.drive_saved = False
             st.session_state.drive_link = ""
+            st.session_state.drive_file_id = ""
 
         st.session_state.quote_data = quote_data
-
         st.session_state.pdf_buffer = pdf_buffer
-
         st.session_state.show_preview = True
 
         st.rerun()
-
-# =====================================================
-# PREVIEW PAGE
-# =====================================================
 
 else:
 
@@ -699,19 +502,16 @@ else:
         )
 
         if st.session_state.drive_link:
-
             st.markdown(
                 f"[Open PDF in Google Drive]({st.session_state.drive_link})"
             )
 
     else:
-
         st.warning(
             "PDF was generated, but it may not have been saved to Google Drive."
         )
 
     pdf_buffer = st.session_state.pdf_buffer
-
     quote_data = st.session_state.quote_data
 
     pdf_bytes = pdf_buffer.getvalue()
@@ -753,26 +553,15 @@ else:
         mime="application/pdf"
     )
 
-    # =====================================================
-    # EMAIL SECTION
-    # =====================================================
-
     st.divider()
 
     st.subheader("Email Quote")
 
-    default_to = quote_data.get(
-        "client_email",
-        ""
-    )
+    default_to = quote_data.get("client_email", "")
 
-    default_cc = (
-        "lionelcastropalomino@gmail.com"
-    )
+    default_cc = "lionelcastropalomino@gmail.com"
 
-    default_subject = (
-        f"Quote - {quote_data['quote_address']}"
-    )
+    default_subject = f"Quote - {quote_data['quote_address']}"
 
     default_message = f"""Dear {quote_data['client_name']},
 
@@ -808,27 +597,17 @@ Aaron's Rubbish Removal & Demolitions
     email_message = st.text_area(
         "Message",
         value=default_message,
-        height=180
+        height=260
     )
 
-    if st.button(
-        "Send Email with PDF"
-    ):
+    if st.button("Send Email with PDF"):
 
         if not to_email.strip():
-
-            st.error(
-                "Please enter the recipient email."
-            )
-
+            st.error("Please enter the recipient email.")
             st.stop()
 
         if not st.session_state.drive_file_id:
-
-            st.error(
-                "PDF file was not saved to Drive."
-            )
-
+            st.error("PDF file was not saved to Drive.")
             st.stop()
 
         email_payload = {
@@ -843,7 +622,6 @@ Aaron's Rubbish Removal & Demolitions
         }
 
         try:
-
             response = requests.post(
                 WEB_APP_URL,
                 json=email_payload,
@@ -851,17 +629,13 @@ Aaron's Rubbish Removal & Demolitions
             )
 
             if response.status_code == 200:
-
                 result = response.json()
 
                 if result.get("status") == "OK":
-
-                    st.success(
-                        "Email sent successfully."
-                    )
+                    st.success("Email sent successfully.")
+                    clear_form()
 
                 else:
-
                     st.error(
                         result.get(
                             "message",
@@ -870,39 +644,20 @@ Aaron's Rubbish Removal & Demolitions
                     )
 
             else:
-
-                st.error(
-                    "Email could not be sent."
-                )
+                st.error("Email could not be sent.")
 
         except Exception:
+            st.error("Email sending failed.")
 
-            st.error(
-                "Email sending failed."
-            )
-
-    # =====================================================
-    # NAVIGATION BUTTONS
-    # =====================================================
-
-    col1, col2 = st.columns([1,1])
+    col1, col2 = st.columns([1, 1])
 
     with col1:
-
-        if st.button(
-            "Back to Edit Form"
-        ):
-
+        if st.button("Back to Edit Form"):
             st.session_state.show_preview = False
-
             st.rerun()
 
     with col2:
-
-        if st.button(
-            "New Quote / Clear Everything"
-        ):
-
-            clear_form()
-
-            st.rerun()
+        st.button(
+            "New Quote / Clear Everything",
+            on_click=clear_form
+        )
