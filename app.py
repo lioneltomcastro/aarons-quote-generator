@@ -774,14 +774,20 @@ else:
         f"Quote - {quote_data['quote_address']}"
     )
 
-    default_message = f"""Hi {quote_data['client_name']},
+    default_message = f"""Dear {quote_data['client_name']},
 
-Please find attached our quotation for the proposed works at {quote_data['quote_address']}.
+Please find attached our quotation for the requested works at {quote_data['quote_address']}.
 
-Should you have any questions or require any further information, please feel free to contact us.
+We kindly ask you to review the attached quotation at your convenience. Should you require any further information, clarification, amendments, or wish to proceed with the works, please do not hesitate to contact our team.
+
+Thank you for considering Aaron's Demolitions. We appreciate the opportunity to provide our services and look forward to assisting you.
+
+For more information about our company and services, please visit our website:
+
+www.aaronsdemolitions.com.au
 
 Kind regards,
-Aaron's Demolitions
+Aaron's Rubbish Removal & Demolitions
 """
 
     to_email = st.text_input(
