@@ -569,11 +569,11 @@ Please find attached our quotation for the requested works at {quote_data['quote
 
 We kindly ask you to review the attached quotation at your convenience. Should you require any further information, clarification, amendments, or wish to proceed with the works, please do not hesitate to contact our team.
 
-Thank you for considering Aaron's Demolitions. We appreciate the opportunity to provide our services and look forward to assisting you.
+Thank you for considering Aaron's Rubbish Removal & Demolitions. We appreciate the opportunity to provide our services and look forward to assisting you.
 
 For more information about our company and services, please visit our website:
 
-www.aaronsdemolitions.com.au
+www.aaronsrubbishremoval.com.au
 
 Kind regards,
 Aaron's Rubbish Removal & Demolitions
