@@ -43,6 +43,9 @@ if "drive_saved" not in st.session_state:
 if "drive_link" not in st.session_state:
     st.session_state.drive_link = ""
 
+if "drive_file_id" not in st.session_state:
+    st.session_state.drive_file_id = ""
+
 # =====================================================
 # HELPERS
 # =====================================================
@@ -57,6 +60,7 @@ def clean_filename(text):
     return text
 
 def payment_text(deposit):
+
     if deposit == "100%":
         return "Full payment upfront is required prior to commencement of works."
 
@@ -72,11 +76,23 @@ def payment_text(deposit):
     )
 
 def clear_form():
+
     keys = [
-        "client_name", "client_email", "quote_address", "job_title",
-        "scope_text", "exclusions_text", "documentation_text",
-        "scope1", "price1", "scope2", "price2", "scope3", "price3",
-        "scope4", "price4"
+        "client_name",
+        "client_email",
+        "quote_address",
+        "job_title",
+        "scope_text",
+        "exclusions_text",
+        "documentation_text",
+        "scope1",
+        "price1",
+        "scope2",
+        "price2",
+        "scope3",
+        "price3",
+        "scope4",
+        "price4"
     ]
 
     for key in keys:
@@ -87,9 +103,12 @@ def clear_form():
     st.session_state.quote_data = {}
     st.session_state.drive_saved = False
     st.session_state.drive_link = ""
+    st.session_state.drive_file_id = ""
 
 def add_footer(canvas, doc):
+
     canvas.saveState()
+
     canvas.setFont("Helvetica", 8)
 
     canvas.drawCentredString(
@@ -117,6 +136,7 @@ def add_footer(canvas, doc):
 # =====================================================
 
 def generate_pdf(data):
+
     buffer = io.BytesIO()
 
     doc = SimpleDocTemplate(
@@ -162,7 +182,12 @@ def generate_pdf(data):
 
     elements = []
 
-    logo = Image("aarons_logo.png", width=300, height=120)
+    logo = Image(
+        "aarons_logo.png",
+        width=300,
+        height=120
+    )
+
     logo.hAlign = "CENTER"
 
     elements.append(logo)
@@ -197,7 +222,13 @@ def generate_pdf(data):
     Attention
     """
 
-    elements.append(Paragraph(intro, normal))
+    elements.append(
+        Paragraph(
+            intro,
+            normal
+        )
+    )
+
     elements.append(PageBreak())
 
     elements.append(
@@ -216,9 +247,15 @@ def generate_pdf(data):
 
     elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("Inclusions & Scope of Works", heading))
+    elements.append(
+        Paragraph(
+            "Inclusions & Scope of Works",
+            heading
+        )
+    )
 
     for i, item in enumerate(clean_lines(data["scope_text"]), start=1):
+
         elements.append(
             Paragraph(
                 f"{i}. {item}",
@@ -228,9 +265,15 @@ def generate_pdf(data):
 
     elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("Exclusions", heading))
+    elements.append(
+        Paragraph(
+            "Exclusions",
+            heading
+        )
+    )
 
     for i, item in enumerate(clean_lines(data["exclusions_text"]), start=1):
+
         elements.append(
             Paragraph(
                 f"{i}. {item}",
@@ -241,9 +284,16 @@ def generate_pdf(data):
     elements.append(Spacer(1, 12))
 
     if data["documentation_text"].strip():
-        elements.append(Paragraph("Documentation", heading))
+
+        elements.append(
+            Paragraph(
+                "Documentation",
+                heading
+            )
+        )
 
         for i, item in enumerate(clean_lines(data["documentation_text"]), start=1):
+
             elements.append(
                 Paragraph(
                     f"{i}. {item}",
@@ -256,10 +306,12 @@ def generate_pdf(data):
     pricing_rows = []
 
     for i in range(1, 5):
+
         desc = data.get(f"scope{i}", "").strip()
         price = data.get(f"price{i}", "").strip()
 
         if desc:
+
             pricing_rows.append([
                 f"Scope {i}",
                 Paragraph(desc, table_text),
@@ -268,9 +320,16 @@ def generate_pdf(data):
 
     pricing_block = []
 
-    pricing_block.append(Paragraph("Scope-Based Pricing", heading))
+    pricing_block.append(
+        Paragraph(
+            "Scope-Based Pricing",
+            heading
+        )
+    )
 
-    table_data = [["Scope", "Description", "Price"]] + pricing_rows
+    table_data = [
+        ["Scope", "Description", "Price"]
+    ] + pricing_rows
 
     pricing_table = Table(
         table_data,
@@ -279,17 +338,29 @@ def generate_pdf(data):
     )
 
     pricing_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("ALIGN", (0, 0), (0, -1), "CENTER"),
-        ("ALIGN", (2, 1), (2, -1), "CENTER"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+
+        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
+
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+
+        ("FONTSIZE", (0,0), (-1,-1), 9),
+
+        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
+
+        ("VALIGN", (0,0), (-1,-1), "TOP"),
+
+        ("ALIGN", (0,0), (0,-1), "CENTER"),
+
+        ("ALIGN", (2,1), (2,-1), "CENTER"),
+
+        ("LEFTPADDING", (0,0), (-1,-1), 6),
+
+        ("RIGHTPADDING", (0,0), (-1,-1), 6),
+
+        ("TOPPADDING", (0,0), (-1,-1), 8),
+
+        ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+
     ]))
 
     pricing_block.append(pricing_table)
@@ -340,22 +411,39 @@ def generate_pdf(data):
     )
 
     buffer.seek(0)
+
     return buffer
 
 # =====================================================
 # SAVE TO GOOGLE SHEET + DRIVE
 # =====================================================
 
-def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
-    pdf_bytes = pdf_buffer.getvalue()
-    pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+def save_quote_to_drive_and_sheet(
+    quote_data,
+    pdf_buffer
+):
 
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-    safe_address = clean_filename(quote_data["quote_address"])
-    file_name = f"Quote - {safe_address} - {timestamp}.pdf"
+    pdf_bytes = pdf_buffer.getvalue()
+
+    pdf_base64 = base64.b64encode(
+        pdf_bytes
+    ).decode("utf-8")
+
+    timestamp = datetime.now().strftime(
+        "%Y-%m-%d_%H-%M"
+    )
+
+    safe_address = clean_filename(
+        quote_data["quote_address"]
+    )
+
+    file_name = (
+        f"Quote - {safe_address} - {timestamp}.pdf"
+    )
 
     payload = {
         **quote_data,
+        "action": "save_quote",
         "pdf_base64": pdf_base64,
         "file_name": file_name
     }
@@ -374,7 +462,7 @@ def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
 
 if not st.session_state.show_preview:
 
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([1,2,1])
 
     with col2:
         st.image("aarons_logo.png", width=380)
@@ -383,10 +471,25 @@ if not st.session_state.show_preview:
 
     st.subheader("Quote Form")
 
-    st.text_input("Client Name *", key="client_name")
-    st.text_input("Client Email", key="client_email")
-    st.text_input("Quote Address *", key="quote_address")
-    st.text_input("Job Title *", key="job_title")
+    st.text_input(
+        "Client Name *",
+        key="client_name"
+    )
+
+    st.text_input(
+        "Client Email",
+        key="client_email"
+    )
+
+    st.text_input(
+        "Quote Address *",
+        key="quote_address"
+    )
+
+    st.text_input(
+        "Job Title *",
+        key="job_title"
+    )
 
     st.text_area(
         "Inclusions & Scope of Works *",
@@ -408,17 +511,45 @@ if not st.session_state.show_preview:
 
     st.subheader("Scope-Based Pricing")
 
-    st.text_input("Scope 1 Description *", key="scope1")
-    st.text_input("Scope 1 Price *", key="price1")
+    st.text_input(
+        "Scope 1 Description *",
+        key="scope1"
+    )
 
-    st.text_input("Scope 2 Description", key="scope2")
-    st.text_input("Scope 2 Price", key="price2")
+    st.text_input(
+        "Scope 1 Price *",
+        key="price1"
+    )
 
-    st.text_input("Scope 3 Description", key="scope3")
-    st.text_input("Scope 3 Price", key="price3")
+    st.text_input(
+        "Scope 2 Description",
+        key="scope2"
+    )
 
-    st.text_input("Scope 4 Description", key="scope4")
-    st.text_input("Scope 4 Price", key="price4")
+    st.text_input(
+        "Scope 2 Price",
+        key="price2"
+    )
+
+    st.text_input(
+        "Scope 3 Description",
+        key="scope3"
+    )
+
+    st.text_input(
+        "Scope 3 Price",
+        key="price3"
+    )
+
+    st.text_input(
+        "Scope 4 Description",
+        key="scope4"
+    )
+
+    st.text_input(
+        "Scope 4 Price",
+        key="price4"
+    )
 
     st.selectbox(
         "Quote Validity",
@@ -451,13 +582,20 @@ if not st.session_state.show_preview:
         key="deposit_required"
     )
 
-    col_a, col_b = st.columns([1, 1])
+    col_a, col_b = st.columns([1,1])
 
     with col_a:
-        generate_button = st.button("Generate Formal PDF Preview")
+
+        generate_button = st.button(
+            "Generate Formal PDF Preview"
+        )
 
     with col_b:
-        if st.button("New Quote / Clear Form"):
+
+        if st.button(
+            "New Quote / Clear Form"
+        ):
+
             clear_form()
             st.rerun()
 
@@ -474,7 +612,11 @@ if not st.session_state.show_preview:
         ]
 
         if any(not field for field in required_fields):
-            st.error("Please complete all required fields marked with *")
+
+            st.error(
+                "Please complete all required fields marked with *"
+            )
+
             st.stop()
 
         quote_data = {
@@ -497,28 +639,47 @@ if not st.session_state.show_preview:
             "deposit_required": st.session_state.deposit_required,
         }
 
-        pdf_buffer = generate_pdf(quote_data)
+        pdf_buffer = generate_pdf(
+            quote_data
+        )
 
         try:
+
             response = save_quote_to_drive_and_sheet(
                 quote_data,
                 pdf_buffer
             )
 
             if response.status_code == 200:
+
                 result = response.json()
+
                 st.session_state.drive_saved = True
-                st.session_state.drive_link = result.get("file_url", "")
+
+                st.session_state.drive_link = result.get(
+                    "file_url",
+                    ""
+                )
+
+                st.session_state.drive_file_id = result.get(
+                    "file_id",
+                    ""
+                )
+
             else:
+
                 st.session_state.drive_saved = False
                 st.session_state.drive_link = ""
 
         except Exception:
+
             st.session_state.drive_saved = False
             st.session_state.drive_link = ""
 
         st.session_state.quote_data = quote_data
+
         st.session_state.pdf_buffer = pdf_buffer
+
         st.session_state.show_preview = True
 
         st.rerun()
@@ -532,16 +693,25 @@ else:
     st.title("PDF Preview")
 
     if st.session_state.drive_saved:
-        st.success("PDF saved to Google Drive and quote registered in Google Sheet.")
+
+        st.success(
+            "PDF saved to Google Drive and quote registered in Google Sheet."
+        )
 
         if st.session_state.drive_link:
+
             st.markdown(
                 f"[Open PDF in Google Drive]({st.session_state.drive_link})"
             )
+
     else:
-        st.warning("PDF was generated, but it may not have been saved to Google Drive.")
+
+        st.warning(
+            "PDF was generated, but it may not have been saved to Google Drive."
+        )
 
     pdf_buffer = st.session_state.pdf_buffer
+
     quote_data = st.session_state.quote_data
 
     pdf_bytes = pdf_buffer.getvalue()
@@ -583,14 +753,150 @@ else:
         mime="application/pdf"
     )
 
-    col1, col2 = st.columns([1, 1])
+    # =====================================================
+    # EMAIL SECTION
+    # =====================================================
+
+    st.divider()
+
+    st.subheader("Email Quote")
+
+    default_to = quote_data.get(
+        "client_email",
+        ""
+    )
+
+    default_cc = (
+        "lionelcastropalomino@gmail.com"
+    )
+
+    default_subject = (
+        f"Quote - {quote_data['quote_address']}"
+    )
+
+    default_message = f"""Hi {quote_data['client_name']},
+
+Please find attached our quotation for the proposed works at {quote_data['quote_address']}.
+
+Should you have any questions or require any further information, please feel free to contact us.
+
+Kind regards,
+Aaron's Demolitions
+"""
+
+    to_email = st.text_input(
+        "To",
+        value=default_to
+    )
+
+    cc_email = st.text_input(
+        "CC",
+        value=default_cc
+    )
+
+    email_subject = st.text_input(
+        "Subject",
+        value=default_subject
+    )
+
+    email_message = st.text_area(
+        "Message",
+        value=default_message,
+        height=180
+    )
+
+    if st.button(
+        "Send Email with PDF"
+    ):
+
+        if not to_email.strip():
+
+            st.error(
+                "Please enter the recipient email."
+            )
+
+            st.stop()
+
+        if not st.session_state.drive_file_id:
+
+            st.error(
+                "PDF file was not saved to Drive."
+            )
+
+            st.stop()
+
+        email_payload = {
+            "action": "send_email",
+            "file_id": st.session_state.drive_file_id,
+            "to_email": to_email,
+            "cc_email": cc_email,
+            "client_name": quote_data["client_name"],
+            "quote_address": quote_data["quote_address"],
+            "subject": email_subject,
+            "message": email_message
+        }
+
+        try:
+
+            response = requests.post(
+                WEB_APP_URL,
+                json=email_payload,
+                timeout=30
+            )
+
+            if response.status_code == 200:
+
+                result = response.json()
+
+                if result.get("status") == "OK":
+
+                    st.success(
+                        "Email sent successfully."
+                    )
+
+                else:
+
+                    st.error(
+                        result.get(
+                            "message",
+                            "Email could not be sent."
+                        )
+                    )
+
+            else:
+
+                st.error(
+                    "Email could not be sent."
+                )
+
+        except Exception:
+
+            st.error(
+                "Email sending failed."
+            )
+
+    # =====================================================
+    # NAVIGATION BUTTONS
+    # =====================================================
+
+    col1, col2 = st.columns([1,1])
 
     with col1:
-        if st.button("Back to Edit Form"):
+
+        if st.button(
+            "Back to Edit Form"
+        ):
+
             st.session_state.show_preview = False
+
             st.rerun()
 
     with col2:
-        if st.button("New Quote / Clear Everything"):
+
+        if st.button(
+            "New Quote / Clear Everything"
+        ):
+
             clear_form()
+
             st.rerun()
