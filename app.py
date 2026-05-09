@@ -5,17 +5,52 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("Aaron's Demolition Quote Generator")
+# =========================================================
+# HEADER WITH LOGO
+# =========================================================
+
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    st.image("aarons_logo.png", width=180)
+
+with col2:
+    st.title("Aaron's Demolition Quote Generator")
+
+# =========================================================
+# QUOTE INFORMATION
+# =========================================================
 
 st.subheader("Quote Information")
 
 client_name = st.text_input("Client Name *")
+
 quote_address = st.text_input("Quote Address *")
+
 job_title = st.text_input("Job Title *")
 
-scope_text = st.text_area("Inclusions & Scope of Works", height=200)
-exclusions_text = st.text_area("Exclusions", height=150)
-documentation_text = st.text_area("Documentation", height=120)
+# =========================================================
+# SCOPE SECTIONS
+# =========================================================
+
+scope_text = st.text_area(
+    "Inclusions & Scope of Works",
+    height=220
+)
+
+exclusions_text = st.text_area(
+    "Exclusions",
+    height=160
+)
+
+documentation_text = st.text_area(
+    "Documentation",
+    height=140
+)
+
+# =========================================================
+# PRICING SECTION
+# =========================================================
 
 st.subheader("Pricing")
 
@@ -28,29 +63,80 @@ price2 = st.text_input("Scope 2 Price")
 scope3 = st.text_input("Scope 3 Description")
 price3 = st.text_input("Scope 3 Price")
 
+# =========================================================
+# TERMS
+# =========================================================
+
 quote_validity = st.selectbox(
     "Quote Validity",
-    ["7 days", "14 days", "21 days", "28 days", "30 days"]
+    [
+        "7 days",
+        "14 days",
+        "21 days",
+        "28 days",
+        "30 days"
+    ]
 )
 
 deposit_required = st.selectbox(
     "Deposit Required",
-    ["0%", "10%", "15%", "35%", "50%", "100%", "Payment upon completion"]
+    [
+        "0%",
+        "10%",
+        "15%",
+        "35%",
+        "50%",
+        "100%",
+        "Payment upon completion"
+    ]
 )
 
 st.divider()
 
+# =========================================================
+# GENERATE PREVIEW
+# =========================================================
+
 if st.button("Generate Quote Preview"):
 
-    if not client_name.strip() or not quote_address.strip() or not job_title.strip():
-        st.error("Client Name, Quote Address and Job Title are required.")
+    # =====================================================
+    # REQUIRED FIELDS
+    # =====================================================
+
+    if (
+        not client_name.strip()
+        or not quote_address.strip()
+        or not job_title.strip()
+    ):
+
+        st.error(
+            "Client Name, Quote Address and Job Title are required."
+        )
+
         st.stop()
 
-    if not scope1.strip() or not price1.strip():
-        st.error("Scope 1 Description and Scope 1 Price are required.")
+    if (
+        not scope1.strip()
+        or not price1.strip()
+    ):
+
+        st.error(
+            "Scope 1 Description and Scope 1 Price are required."
+        )
+
         st.stop()
 
-    st.success("Quote preview generated successfully.")
+    # =====================================================
+    # SUCCESS
+    # =====================================================
+
+    st.success(
+        "Quote preview generated successfully."
+    )
+
+    # =====================================================
+    # PREVIEW
+    # =====================================================
 
     st.subheader("Preview")
 
@@ -62,26 +148,56 @@ if st.button("Generate Quote Preview"):
     ---
     """)
 
-    st.markdown("## Inclusions & Scope of Works")
+    # =====================================================
+    # INCLUSIONS
+    # =====================================================
+
+    st.markdown(
+        "## Inclusions & Scope of Works"
+    )
+
     for line in scope_text.split("\n"):
+
         if line.strip():
+
             st.markdown(f"- {line}")
+
+    # =====================================================
+    # EXCLUSIONS
+    # =====================================================
 
     st.markdown("## Exclusions")
+
     for line in exclusions_text.split("\n"):
+
         if line.strip():
+
             st.markdown(f"- {line}")
+
+    # =====================================================
+    # DOCUMENTATION
+    # =====================================================
 
     st.markdown("## Documentation")
+
     for line in documentation_text.split("\n"):
+
         if line.strip():
+
             st.markdown(f"- {line}")
 
-    st.markdown("## Scope-Based Pricing")
+    # =====================================================
+    # PRICING TABLE
+    # =====================================================
+
+    st.markdown(
+        "## Scope-Based Pricing"
+    )
 
     pricing_data = []
 
     if scope1.strip():
+
         pricing_data.append({
             "Scope": "Scope 1",
             "Description": scope1,
@@ -89,6 +205,7 @@ if st.button("Generate Quote Preview"):
         })
 
     if scope2.strip():
+
         pricing_data.append({
             "Scope": "Scope 2",
             "Description": scope2,
@@ -96,6 +213,7 @@ if st.button("Generate Quote Preview"):
         })
 
     if scope3.strip():
+
         pricing_data.append({
             "Scope": "Scope 3",
             "Description": scope3,
@@ -104,11 +222,30 @@ if st.button("Generate Quote Preview"):
 
     st.table(pricing_data)
 
+    # =====================================================
+    # PAYMENT TERMS
+    # =====================================================
+
     st.markdown("## Payment Terms")
-    st.write(f"This quotation is valid for {quote_validity} from the date issued.")
-    st.write(f"Deposit Required: {deposit_required}")
+
+    st.write(
+        f"This quotation is valid for {quote_validity} from the date issued."
+    )
+
+    st.write(
+        f"Deposit Required: {deposit_required}"
+    )
+
+    # =====================================================
+    # BANK DETAILS
+    # =====================================================
 
     st.markdown("## Bank Details")
-    st.write("Aaron's Rubbish Removal Pty Ltd")
+
+    st.write(
+        "Aaron's Rubbish Removal Pty Ltd"
+    )
+
     st.write("BSB: 704191")
+
     st.write("Account Number: 246767")
