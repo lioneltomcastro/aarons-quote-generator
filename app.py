@@ -1,6 +1,7 @@
 import streamlit as st
 import io
 import fitz
+import requests
 from PIL import Image as PILImage
 from reportlab.platypus import *
 from reportlab.lib.pagesizes import A4
@@ -287,7 +288,18 @@ if not st.session_state.show_preview:
             "quote_validity": quote_validity,
             "deposit_required": deposit_required,
         }
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzu-1OxZDVDIt8atdm2Dmy4ujr4yrBXG92f5u8nkdzDI_86JkivJttTMKXXKtFA5SfD/exec"
 
+try:
+    response = requests.post(WEB_APP_URL, json=quote_data)
+
+    if response.status_code == 200:
+        st.success("Quote saved to Google Sheet.")
+    else:
+        st.warning("Quote PDF generated, but it was not saved to Google Sheet.")
+
+except Exception as e:
+    st.warning("Quote PDF generated, but Google Sheet save failed.")
         st.session_state.quote_data = quote_data
         st.session_state.pdf_buffer = generate_pdf(quote_data)
         st.session_state.show_preview = True
