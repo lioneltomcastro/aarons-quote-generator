@@ -7,8 +7,54 @@ st.set_page_config(
     layout="wide"
 )
 
-st.image("aarons_logo.png", width=350)
+# =====================================================
+# CSS STYLE
+# =====================================================
+
+st.markdown("""
+<style>
+p, li {
+    text-align: justify;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 45px;
+}
+
+.quote-block {
+    max-width: 1100px;
+    margin: auto;
+}
+
+table {
+    width: 100%;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================================
+# HEADER
+# =====================================================
+
+st.markdown(
+    """
+    <div class="logo-container">
+        <img src="https://raw.githubusercontent.com/lioneltomcastro/aarons-quote-generator/main/aarons_logo.png" width="380">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("Aaron's Demolition Quote Generator")
+
+# =====================================================
+# FORM
+# =====================================================
 
 st.subheader("Quote Form")
 
@@ -47,6 +93,10 @@ deposit_required = st.selectbox(
 
 generate = st.button("Generate Quote Preview")
 
+# =====================================================
+# PREVIEW
+# =====================================================
+
 if generate:
 
     if not client_name or not quote_address or not job_title or not scope_text or not exclusions_text or not scope1 or not price1:
@@ -56,23 +106,45 @@ if generate:
     st.success("Quote preview generated successfully.")
 
     st.divider()
+
     st.header("PDF Preview")
 
-    st.image("aarons_logo.png", width=350)
+    st.markdown('<div class="quote-block">', unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div class="logo-container">
+            <img src="https://raw.githubusercontent.com/lioneltomcastro/aarons-quote-generator/main/aarons_logo.png" width="380">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.markdown(f"**Quote:** {quote_address}")
 
     st.markdown(f"""
-Thank you, **{client_name}**, for the opportunity to quote the following work. I have relied upon discussions and the information provided regarding the scope of works.
+<div style='text-align: justify; line-height: 1.6;'>
+
+Thank you, <b>{client_name}</b>, for the opportunity to quote the following work. I have relied upon discussions and the information provided regarding the scope of works.
+
+<br><br>
 
 Aaron's Demolitions ensures all work will be performed within OH&S requirements and compliant with our Environment Health & Safety Management Plan. Safe Work Method Statements will be supplied upon commencement of work if required.
 
+<br><br>
+
 Aaron's Demolitions has Public Liability Insurance at $20,000,000.00, current Work Cover, operating within the Building & Construction General On-Site Award 2010, and is compliant with the National Code & Guidelines.
 
-Please note that the term **“Dismantling”** is used instead of **“Demolition”** in order to emphasize our principles of recycling and the minimization of materials to landfills. In order to achieve this, all salvage becomes the property of Aaron's Demolitions.
+<br><br>
+
+Please note that the term <b>“Dismantling”</b> is used instead of <b>“Demolition”</b> in order to emphasize our principles of recycling and the minimization of materials to landfills. In order to achieve this, all salvage becomes the property of Aaron's Demolitions.
+
+<br><br>
 
 Attention
-""")
+
+</div>
+""", unsafe_allow_html=True)
 
     st.markdown(f"### Quotation: {job_title}")
     st.markdown(f"**Location:** {quote_address}")
@@ -117,11 +189,11 @@ Attention
 **Account Number:** 246767
 """)
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
     st.divider()
 
     st.subheader("Actions")
-
-    st.info("Next step: here we connect the real PDF generator.")
 
     email_subject = quote(f"Quotation - {quote_address}")
     email_body = quote(f"""Hi {client_name},
