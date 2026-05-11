@@ -20,51 +20,28 @@ st.set_page_config(
     layout="wide"
 )
 
-if "show_preview" not in st.session_state:
-    st.session_state.show_preview = False
+# =====================================================
+# SESSION STATE
+# =====================================================
 
-if "pdf_buffer" not in st.session_state:
-    st.session_state.pdf_buffer = None
+defaults = {
+    "show_preview": False,
+    "pdf_buffer": None,
+    "quote_data": {},
+    "drive_saved": False,
+    "drive_link": "",
+    "drive_file_id": "",
+    "clear_after_email": False
+}
 
-if "quote_data" not in st.session_state:
-    st.session_state.quote_data = {}
-
-if "drive_saved" not in st.session_state:
-    st.session_state.drive_saved = False
-
-if "drive_link" not in st.session_state:
-    st.session_state.drive_link = ""
-
-if "drive_file_id" not in st.session_state:
-    st.session_state.drive_file_id = ""
-
-
-def clean_lines(text):
-    return [line.strip() for line in str(text).split("\n") if line.strip()]
+for key, value in defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 
-def clean_filename(text):
-    text = str(text).strip()
-    text = re.sub(r'[\\/*?:"<>|]', "", text)
-    text = re.sub(r"\s+", " ", text)
-    return text
-
-
-def payment_text(deposit):
-    if deposit == "100%":
-        return "Full payment upfront is required prior to commencement of works."
-
-    if deposit == "Payment upon completion":
-        return "Payment is to be made upon completion of works unless negotiated otherwise at the time of contract."
-
-    if deposit == "0%":
-        return "No upfront deposit is required. The balance is to be paid upon completion of works."
-
-    return (
-        f"Strictly {deposit} upfront deposit is required to secure and schedule the booking. "
-        f"The remaining balance is to be paid upon completion of works unless negotiated otherwise."
-    )
-
+# =====================================================
+# HELPERS
+# =====================================================
 
 def clear_form():
     keys = [
@@ -94,6 +71,39 @@ def clear_form():
             del st.session_state[key]
 
     st.session_state.show_preview = False
+    st.session_state.clear_after_email = False
+
+
+if st.session_state.clear_after_email:
+    clear_form()
+    st.rerun()
+
+
+def clean_lines(text):
+    return [line.strip() for line in str(text).split("\n") if line.strip()]
+
+
+def clean_filename(text):
+    text = str(text).strip()
+    text = re.sub(r'[\\/*?:"<>|]', "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def payment_text(deposit):
+    if deposit == "100%":
+        return "Full payment upfront is required prior to commencement of works."
+
+    if deposit == "Payment upon completion":
+        return "Payment is to be made upon completion of works unless negotiated otherwise at the time of contract."
+
+    if deposit == "0%":
+        return "No upfront deposit is required. The balance is to be paid upon completion of works."
+
+    return (
+        f"Strictly {deposit} upfront deposit is required to secure and schedule the booking. "
+        f"The remaining balance is to be paid upon completion of works unless negotiated otherwise."
+    )
 
 
 def add_footer(canvas, doc):
@@ -120,6 +130,10 @@ def add_footer(canvas, doc):
 
     canvas.restoreState()
 
+
+# =====================================================
+# PDF GENERATOR
+# =====================================================
 
 def generate_pdf(data):
     buffer = io.BytesIO()
@@ -249,7 +263,6 @@ def generate_pdf(data):
             ])
 
     pricing_block = []
-
     pricing_block.append(Paragraph("Scope-Based Pricing", heading))
 
     table_data = [["Scope", "Description", "Price"]] + pricing_rows
@@ -293,7 +306,6 @@ def generate_pdf(data):
     """
 
     pricing_block.append(Paragraph(bank_details, normal))
-
     elements.append(KeepTogether(pricing_block))
 
     doc.build(
@@ -306,15 +318,16 @@ def generate_pdf(data):
     return buffer
 
 
+# =====================================================
+# SAVE TO GOOGLE SHEET + DRIVE
+# =====================================================
+
 def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
     pdf_bytes = pdf_buffer.getvalue()
-
     pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
-
     safe_address = clean_filename(quote_data["quote_address"])
-
     file_name = f"Quote - {safe_address} - {timestamp}.pdf"
 
     payload = {
@@ -333,6 +346,10 @@ def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
     return response
 
 
+# =====================================================
+# FORM PAGE
+# =====================================================
+
 if not st.session_state.show_preview:
 
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -341,7 +358,6 @@ if not st.session_state.show_preview:
         st.image("aarons_logo.png", width=380)
 
     st.title("Aaron's Demolition Quote Generator")
-
     st.subheader("Quote Form")
 
     st.text_input("Client Name *", key="client_name")
@@ -488,6 +504,11 @@ if not st.session_state.show_preview:
 
         st.rerun()
 
+
+# =====================================================
+# PREVIEW PAGE
+# =====================================================
+
 else:
 
     st.title("PDF Preview")
@@ -535,7 +556,7 @@ else:
         st.image(
             img,
             caption=f"Page {page_number + 1}",
-            use_container_width=True
+            width="stretch"
         )
 
     file_name = (
@@ -555,9 +576,7 @@ else:
     st.subheader("Email Quote")
 
     default_to = ""
-
     default_cc = "lionelcastropalomino@gmail.com"
-
     default_subject = f"Quote - {quote_data['quote_address']}"
 
     default_message = f"""Dear {quote_data['client_name']},
@@ -630,7 +649,8 @@ Aaron's Rubbish Removal & Demolitions
 
                 if result.get("status") == "OK":
                     st.success("Email sent successfully.")
-                    clear_form()
+                    st.session_state.clear_after_email = True
+                    st.rerun()
 
                 else:
                     st.error(
