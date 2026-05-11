@@ -31,7 +31,7 @@ defaults = {
     "drive_saved": False,
     "drive_link": "",
     "drive_file_id": "",
-    "clear_after_email": False
+    "form_id": 0,
 }
 
 for key, value in defaults.items():
@@ -43,40 +43,14 @@ for key, value in defaults.items():
 # HELPERS
 # =====================================================
 
-def clear_form():
-    keys = [
-        "client_name",
-        "quote_address",
-        "job_title",
-        "scope_text",
-        "exclusions_text",
-        "documentation_text",
-        "scope1",
-        "price1",
-        "scope2",
-        "price2",
-        "scope3",
-        "price3",
-        "scope4",
-        "price4",
-        "pdf_buffer",
-        "quote_data",
-        "drive_saved",
-        "drive_link",
-        "drive_file_id"
-    ]
-
-    for key in keys:
-        if key in st.session_state:
-            del st.session_state[key]
-
+def reset_to_new_quote():
+    st.session_state.form_id += 1
     st.session_state.show_preview = False
-    st.session_state.clear_after_email = False
-
-
-if st.session_state.clear_after_email:
-    clear_form()
-    st.rerun()
+    st.session_state.pdf_buffer = None
+    st.session_state.quote_data = {}
+    st.session_state.drive_saved = False
+    st.session_state.drive_link = ""
+    st.session_state.drive_file_id = ""
 
 
 def clean_lines(text):
@@ -352,6 +326,8 @@ def save_quote_to_drive_and_sheet(quote_data, pdf_buffer):
 
 if not st.session_state.show_preview:
 
+    fid = st.session_state.form_id
+
     col1, col2, col3 = st.columns([1, 2, 1])
 
     with col2:
@@ -360,41 +336,41 @@ if not st.session_state.show_preview:
     st.title("Aaron's Demolition Quote Generator")
     st.subheader("Quote Form")
 
-    st.text_input("Client Name *", key="client_name")
-    st.text_input("Quote Address *", key="quote_address")
-    st.text_input("Job Title *", key="job_title")
+    st.text_input("Client Name *", key=f"client_name_{fid}")
+    st.text_input("Quote Address *", key=f"quote_address_{fid}")
+    st.text_input("Job Title *", key=f"job_title_{fid}")
 
     st.text_area(
         "Inclusions & Scope of Works *",
         height=220,
-        key="scope_text"
+        key=f"scope_text_{fid}"
     )
 
     st.text_area(
         "Exclusions *",
         height=180,
-        key="exclusions_text"
+        key=f"exclusions_text_{fid}"
     )
 
     st.text_area(
         "Documentation",
         height=120,
-        key="documentation_text"
+        key=f"documentation_text_{fid}"
     )
 
     st.subheader("Scope-Based Pricing")
 
-    st.text_input("Scope 1 Description *", key="scope1")
-    st.text_input("Scope 1 Price *", key="price1")
+    st.text_input("Scope 1 Description *", key=f"scope1_{fid}")
+    st.text_input("Scope 1 Price *", key=f"price1_{fid}")
 
-    st.text_input("Scope 2 Description", key="scope2")
-    st.text_input("Scope 2 Price", key="price2")
+    st.text_input("Scope 2 Description", key=f"scope2_{fid}")
+    st.text_input("Scope 2 Price", key=f"price2_{fid}")
 
-    st.text_input("Scope 3 Description", key="scope3")
-    st.text_input("Scope 3 Price", key="price3")
+    st.text_input("Scope 3 Description", key=f"scope3_{fid}")
+    st.text_input("Scope 3 Price", key=f"price3_{fid}")
 
-    st.text_input("Scope 4 Description", key="scope4")
-    st.text_input("Scope 4 Price", key="price4")
+    st.text_input("Scope 4 Description", key=f"scope4_{fid}")
+    st.text_input("Scope 4 Price", key=f"price4_{fid}")
 
     st.selectbox(
         "Quote Validity",
@@ -407,7 +383,7 @@ if not st.session_state.show_preview:
             "60 days",
             "90 days"
         ],
-        key="quote_validity"
+        key=f"quote_validity_{fid}"
     )
 
     st.selectbox(
@@ -424,7 +400,7 @@ if not st.session_state.show_preview:
             "100%",
             "Payment upon completion"
         ],
-        key="deposit_required"
+        key=f"deposit_required_{fid}"
     )
 
     col_a, col_b = st.columns([1, 1])
@@ -433,21 +409,20 @@ if not st.session_state.show_preview:
         generate_button = st.button("Generate Formal PDF Preview")
 
     with col_b:
-        st.button(
-            "New Quote / Clear Form",
-            on_click=clear_form
-        )
+        if st.button("New Quote / Clear Form"):
+            reset_to_new_quote()
+            st.rerun()
 
     if generate_button:
 
         required_fields = [
-            st.session_state.client_name,
-            st.session_state.quote_address,
-            st.session_state.job_title,
-            st.session_state.scope_text,
-            st.session_state.exclusions_text,
-            st.session_state.scope1,
-            st.session_state.price1
+            st.session_state.get(f"client_name_{fid}", ""),
+            st.session_state.get(f"quote_address_{fid}", ""),
+            st.session_state.get(f"job_title_{fid}", ""),
+            st.session_state.get(f"scope_text_{fid}", ""),
+            st.session_state.get(f"exclusions_text_{fid}", ""),
+            st.session_state.get(f"scope1_{fid}", ""),
+            st.session_state.get(f"price1_{fid}", "")
         ]
 
         if any(not field for field in required_fields):
@@ -455,22 +430,22 @@ if not st.session_state.show_preview:
             st.stop()
 
         quote_data = {
-            "client_name": st.session_state.client_name,
-            "quote_address": st.session_state.quote_address,
-            "job_title": st.session_state.job_title,
-            "scope_text": st.session_state.scope_text,
-            "exclusions_text": st.session_state.exclusions_text,
-            "documentation_text": st.session_state.documentation_text,
-            "scope1": st.session_state.scope1,
-            "price1": st.session_state.price1,
-            "scope2": st.session_state.scope2,
-            "price2": st.session_state.price2,
-            "scope3": st.session_state.scope3,
-            "price3": st.session_state.price3,
-            "scope4": st.session_state.scope4,
-            "price4": st.session_state.price4,
-            "quote_validity": st.session_state.quote_validity,
-            "deposit_required": st.session_state.deposit_required,
+            "client_name": st.session_state.get(f"client_name_{fid}", ""),
+            "quote_address": st.session_state.get(f"quote_address_{fid}", ""),
+            "job_title": st.session_state.get(f"job_title_{fid}", ""),
+            "scope_text": st.session_state.get(f"scope_text_{fid}", ""),
+            "exclusions_text": st.session_state.get(f"exclusions_text_{fid}", ""),
+            "documentation_text": st.session_state.get(f"documentation_text_{fid}", ""),
+            "scope1": st.session_state.get(f"scope1_{fid}", ""),
+            "price1": st.session_state.get(f"price1_{fid}", ""),
+            "scope2": st.session_state.get(f"scope2_{fid}", ""),
+            "price2": st.session_state.get(f"price2_{fid}", ""),
+            "scope3": st.session_state.get(f"scope3_{fid}", ""),
+            "price3": st.session_state.get(f"price3_{fid}", ""),
+            "scope4": st.session_state.get(f"scope4_{fid}", ""),
+            "price4": st.session_state.get(f"price4_{fid}", ""),
+            "quote_validity": st.session_state.get(f"quote_validity_{fid}", ""),
+            "deposit_required": st.session_state.get(f"deposit_required_{fid}", ""),
         }
 
         pdf_buffer = generate_pdf(quote_data)
@@ -649,7 +624,7 @@ Aaron's Rubbish Removal & Demolitions
 
                 if result.get("status") == "OK":
                     st.success("Email sent successfully.")
-                    st.session_state.clear_after_email = True
+                    reset_to_new_quote()
                     st.rerun()
 
                 else:
@@ -674,7 +649,6 @@ Aaron's Rubbish Removal & Demolitions
             st.rerun()
 
     with col2:
-        st.button(
-            "New Quote / Clear Everything",
-            on_click=clear_form
-        )
+        if st.button("New Quote / Clear Everything"):
+            reset_to_new_quote()
+            st.rerun()
